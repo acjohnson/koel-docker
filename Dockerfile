@@ -3,6 +3,17 @@ FROM php:8.4.8-apache-bookworm
 
 # The koel version to download
 ARG KOEL_VERSION_REF=v8.3.0
+ARG PUID=568
+ARG PGID=568
+
+# Ensure preferred www-data UID/GID is used
+RUN groupmod -g ${PGID} www-data \
+    && usermod -u ${PUID} -g ${PGID} www-data \
+    && groupmod -a tty -U www-data \
+    && unlink /var/log/apache2/access.log && ln -s /dev/stdout /var/log/apache2/access.log \
+    && unlink /var/log/apache2/error.log && ln -s /dev/stderr /var/log/apache2/error.log \
+    && unlink /var/log/apache2/other_vhosts_access.log && ln -s /dev/stdout /var/log/apache2/other_vhosts_access.log \
+    && find / -xdev -uid 33 -exec chown ${PUID}:${PGID} {} \; 2>/dev/null
 
 # Download the koel release matching the version and remove anything not necessary for production
 RUN curl -L https://github.com/koel/koel/releases/download/${KOEL_VERSION_REF}/koel-${KOEL_VERSION_REF}.tar.gz | tar -xz -C /tmp \

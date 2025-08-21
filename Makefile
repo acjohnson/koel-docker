@@ -1,9 +1,16 @@
 .PHONY: all help start
+KOEL_VERSION_REF := $(shell grep "ARG KOEL_VERSION_REF" Dockerfile | sed 's/ARG KOEL_VERSION_REF=//g')
 
 all: help
 
 build-docker-image: ## Builds the production x86_64 Docker image
 	docker build . --file Dockerfile --tag phanan/koel-dev:latest
+
+tag-and-push-docker-image: ## Tags and pushes to my repo
+	docker tag phanan/koel-dev:latest registry.thejohnsons.site/phanan/koel-dev:latest
+	docker tag registry.thejohnsons.site/phanan/koel-dev:latest registry.thejohnsons.site/phanan/koel-dev:$(KOEL_VERSION_REF)
+	docker push registry.thejohnsons.site/phanan/koel-dev:latest
+	docker push registry.thejohnsons.site/phanan/koel-dev:$(KOEL_VERSION_REF)
 
 build-all-arch-docker-images: ## Builds the production Docker image for all supported processor architectures
 	docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 . --file Dockerfile --tag phanan/koel-dev:latest
